@@ -30,13 +30,18 @@
                     <FontIconSource Glyph="&#xF4AA;"/>
                 </TitleBar.IconSource>-->
                 <TitleBar.LeftHeader>
-                    <Button Margin="10.5,0,0,0"
-                            Style="{StaticResource SidebarToggleButtonStyle}"
-                            Command="{x:Bind ViewModel.ToggleSidebarCommand}">
-                        <FontIcon Glyph="&#xE90C;"
-                                  FontSize="16"
-                                  FontFamily="{ThemeResource SymbolThemeFontFamily}" />
-                    </Button>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Margin="10.5,0,0,0"
+                                Style="{StaticResource SidebarToggleButtonStyle}"
+                                Command="{x:Bind ViewModel.ToggleSidebarCommand}">
+                            <FontIcon Glyph="&#xE90C;"
+                                      FontSize="16"
+                                      FontFamily="{ThemeResource SymbolThemeFontFamily}" />
+                        </Button>
+                        <Border Width="1"
+                                Background="#40999999"
+                                Margin="8,4,0,4" />
+                    </StackPanel>
                 </TitleBar.LeftHeader>
             </TitleBar>
         </Grid>
