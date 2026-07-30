@@ -1,3 +1,4 @@
+using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Input;
@@ -6,8 +7,10 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Demo.ViewModels;
 using System;
 using System.Numerics;
+using Windows.Foundation;
 using Windows.Graphics;
 using Windows.UI;
+using Rect = Windows.Foundation.Rect;
 
 namespace Demo
 {
@@ -19,15 +22,25 @@ namespace Demo
         private readonly Storyboard _collapseStoryboard = new();
         private readonly Storyboard _borderFocusIn = new();
         private readonly Storyboard _borderFocusOut = new();
+        private readonly Storyboard _settingsShow = new();
+        private readonly Storyboard _settingsHide = new();
 
         public MainWindow()
         {
             InitializeComponent();
+
             ExtendsContentIntoTitleBar = true;
-            SetTitleBar(AppTitleBar);
-            AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+            if (ExtendsContentIntoTitleBar == true)
+            {
+                AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
+            }
 
             SetupAnimations();
+
+            AppWindow.Changed += AppWindow_Changed;
+            Activated += MainWindow_Activated;
+            AppTitleBar.SizeChanged += AppTitleBar_SizeChanged;
+            AppTitleBar.Loaded += AppTitleBar_Loaded;
 
             ViewModel.PropertyChanged += (s, e) =>
             {
@@ -35,10 +48,15 @@ namespace Demo
                 {
                     AnimateSidebar();
                 }
+                else if (e.PropertyName == nameof(MainViewModel.IsSettingsOpen))
+                {
+                    AnimateSettings();
+                }
             };
 
             rootGrid.Loaded += (_, _) =>
             {
+                settingsOverlay.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(SettingsOverlay_PointerPressed), true);
                 searchBoxBorder.AddHandler(UIElement.PointerEnteredEvent, new PointerEventHandler(SearchBox_PointerEntered), true);
                 searchBoxBorder.AddHandler(UIElement.PointerExitedEvent, new PointerEventHandler(SearchBox_PointerExited), true);
                 searchBoxBorder.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(SearchBox_PointerPressed), true);
@@ -155,6 +173,79 @@ namespace Demo
             Storyboard.SetTarget(focusOut, searchBoxBorder);
             Storyboard.SetTargetProperty(focusOut, "(Border.BorderBrush).(SolidColorBrush.Color)");
             _borderFocusOut.Children.Add(focusOut);
+
+            var settingsEase = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var settingsDuration = TimeSpan.FromMilliseconds(200);
+
+            var overlayShowOpacity = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(overlayShowOpacity, settingsOverlay);
+            Storyboard.SetTargetProperty(overlayShowOpacity, "Opacity");
+            _settingsShow.Children.Add(overlayShowOpacity);
+
+            var panelShowY = new DoubleAnimation
+            {
+                From = 50,
+                To = 0,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(panelShowY, settingsPanelTransform);
+            Storyboard.SetTargetProperty(panelShowY, "Y");
+            _settingsShow.Children.Add(panelShowY);
+
+            var panelShowOpacity = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(panelShowOpacity, settingsPanel);
+            Storyboard.SetTargetProperty(panelShowOpacity, "Opacity");
+            _settingsShow.Children.Add(panelShowOpacity);
+
+            var overlayHideOpacity = new DoubleAnimation
+            {
+                From = 1,
+                To = 0,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(overlayHideOpacity, settingsOverlay);
+            Storyboard.SetTargetProperty(overlayHideOpacity, "Opacity");
+            _settingsHide.Children.Add(overlayHideOpacity);
+
+            var panelHideOpacity = new DoubleAnimation
+            {
+                From = 1,
+                To = 0,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(panelHideOpacity, settingsPanel);
+            Storyboard.SetTargetProperty(panelHideOpacity, "Opacity");
+            _settingsHide.Children.Add(panelHideOpacity);
+
+            var panelHideY = new DoubleAnimation
+            {
+                From = 0,
+                To = -50,
+                Duration = settingsDuration,
+                EasingFunction = settingsEase
+            };
+            Storyboard.SetTarget(panelHideY, settingsPanelTransform);
+            Storyboard.SetTargetProperty(panelHideY, "Y");
+            _settingsHide.Children.Add(panelHideY);
+            _settingsHide.Completed += (_, _) =>
+            {
+                settingsOverlay.Visibility = Visibility.Collapsed;
+            };
         }
 
         private void AnimateBackground(Color to, int durationMs)
@@ -185,6 +276,21 @@ namespace Demo
             }
         }
 
+        private void AnimateSettings()
+        {
+            if (ViewModel.IsSettingsOpen)
+            {
+                settingsOverlay.Visibility = Visibility.Visible;
+                settingsPanelTransform.Y = 50;
+                settingsPanel.Opacity = 0;
+                _settingsShow.Begin();
+            }
+            else
+            {
+                _settingsHide.Begin();
+            }
+        }
+
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             _borderFocusOut.Stop();
@@ -209,6 +315,102 @@ namespace Demo
         private void SearchBox_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
             AnimateBackground(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), 80);
+        }
+
+        private void SettingsOverlay_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (e.OriginalSource == settingsOverlay)
+            {
+                ViewModel.CloseSettingsCommand.Execute(null);
+            }
+        }
+
+        private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
+        {
+            var foreground = args.WindowActivationState == WindowActivationState.Deactivated
+                ? (SolidColorBrush)App.Current.Resources["WindowCaptionForegroundDisabled"]
+                : (SolidColorBrush)App.Current.Resources["WindowCaptionForeground"];
+
+            TitleBarTextBlock.Foreground = foreground;
+            SidebarToggleButton.Foreground = foreground;
+            SettingsButton.Foreground = foreground;
+        }
+
+        private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            if (args.DidPresenterChange)
+            {
+                switch (sender.Presenter.Kind)
+                {
+                    case AppWindowPresenterKind.CompactOverlay:
+                        AppTitleBar.Visibility = Visibility.Collapsed;
+                        sender.TitleBar.ResetToDefault();
+                        break;
+
+                    case AppWindowPresenterKind.FullScreen:
+                        AppTitleBar.Visibility = Visibility.Collapsed;
+                        sender.TitleBar.ExtendsContentIntoTitleBar = true;
+                        break;
+
+                    case AppWindowPresenterKind.Overlapped:
+                        AppTitleBar.Visibility = Visibility.Visible;
+                        sender.TitleBar.ExtendsContentIntoTitleBar = true;
+                        break;
+
+                    default:
+                        sender.TitleBar.ResetToDefault();
+                        break;
+                }
+            }
+        }
+
+        private void AppTitleBar_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (ExtendsContentIntoTitleBar == true)
+            {
+                SetRegionsForCustomTitleBar();
+            }
+        }
+
+        private void AppTitleBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (ExtendsContentIntoTitleBar == true)
+            {
+                SetRegionsForCustomTitleBar();
+            }
+        }
+
+        private void SetRegionsForCustomTitleBar()
+        {
+            double scaleAdjustment = AppTitleBar.XamlRoot.RasterizationScale;
+
+            RightPaddingColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scaleAdjustment);
+            LeftPaddingColumn.Width = new GridLength(AppWindow.TitleBar.LeftInset / scaleAdjustment);
+
+            GeneralTransform transform = SidebarToggleButton.TransformToVisual(null);
+            Rect bounds = transform.TransformBounds(new Rect(0, 0,
+                SidebarToggleButton.ActualWidth, SidebarToggleButton.ActualHeight));
+            Windows.Graphics.RectInt32 SidebarRect = GetRect(bounds, scaleAdjustment);
+
+            transform = SettingsButton.TransformToVisual(null);
+            bounds = transform.TransformBounds(new Rect(0, 0,
+                SettingsButton.ActualWidth, SettingsButton.ActualHeight));
+            Windows.Graphics.RectInt32 SettingsRect = GetRect(bounds, scaleAdjustment);
+
+            var rectArray = new Windows.Graphics.RectInt32[] { SidebarRect, SettingsRect };
+
+            InputNonClientPointerSource nonClientInputSrc =
+                InputNonClientPointerSource.GetForWindowId(AppWindow.Id);
+            nonClientInputSrc.SetRegionRects(NonClientRegionKind.Passthrough, rectArray);
+        }
+
+        private Windows.Graphics.RectInt32 GetRect(Rect bounds, double scale)
+        {
+            return new Windows.Graphics.RectInt32(
+                _X: (int)Math.Round(bounds.X * scale),
+                _Y: (int)Math.Round(bounds.Y * scale),
+                _Width: (int)Math.Round(bounds.Width * scale),
+                _Height: (int)Math.Round(bounds.Height * scale));
         }
     }
 }
