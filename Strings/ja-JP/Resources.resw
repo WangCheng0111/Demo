@@ -27,4 +27,16 @@
   <data name="Settings.LanguageLabel" xml:space="preserve">
     <value>言語</value>
   </data>
+  <data name="Settings.SectionDesktop" xml:space="preserve">
+    <value>デスクトップ</value>
+  </data>
+  <data name="Settings.CategoryGeneral" xml:space="preserve">
+    <value>全般</value>
+  </data>
+  <data name="Settings.CategoryShortcuts" xml:space="preserve">
+    <value>ショートカット</value>
+  </data>
+  <data name="Settings.ShortcutsPlaceholder" xml:space="preserve">
+    <value>ショートカット設定（開発中）</value>
+  </data>
 </root>

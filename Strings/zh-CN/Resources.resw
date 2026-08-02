@@ -27,4 +27,16 @@
   <data name="Settings.LanguageLabel" xml:space="preserve">
     <value>语言</value>
   </data>
+  <data name="Settings.SectionDesktop" xml:space="preserve">
+    <value>桌面</value>
+  </data>
+  <data name="Settings.CategoryGeneral" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="Settings.CategoryShortcuts" xml:space="preserve">
+    <value>快捷键</value>
+  </data>
+  <data name="Settings.ShortcutsPlaceholder" xml:space="preserve">
+    <value>快捷键设置（开发中）</value>
+  </data>
 </root>

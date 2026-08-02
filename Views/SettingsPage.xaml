@@ -13,44 +13,164 @@
           Opacity="0"
           Visibility="Collapsed">
         <Border x:Name="panel"
-                Width="420"
-                Height="320"
+                Width="780"
+                Height="600"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Background="#F0FFFFFF"
+                Background="#ffffff"
                 CornerRadius="8">
             <Border.RenderTransform>
                 <TranslateTransform x:Name="panelTransform" />
             </Border.RenderTransform>
 
-            <Grid Margin="24">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0"
-                           Text="{Binding Title}"
-                           FontFamily="{StaticResource HarmonyOSRegular}"
-                           FontSize="16"
-                           Foreground="#333333"
-                           Margin="0,0,0,20" />
+                <Grid Grid.Column="0" Background="#fafafa">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="1"
-                           Text="{Binding LanguageLabel}"
-                           FontFamily="{StaticResource HarmonyOSRegular}"
-                           FontSize="13"
-                           Foreground="#666666"
-                           Margin="0,0,0,6" />
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding SectionDesktopTitle}"
+                               FontFamily="{StaticResource HarmonyOSRegular}"
+                               FontSize="12"
+                               Foreground="#888888"
+                               Margin="16,24,16,12" />
 
-                <ComboBox Grid.Row="1"
-                          ItemsSource="{Binding LanguageOptions}"
-                          SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
-                          DisplayMemberPath="DisplayName"
-                          Margin="0,26,0,0"
-                          FontFamily="{StaticResource HarmonyOSRegular}"
-                          FontSize="13" />
+                    <ListView Grid.Row="1"
+                              ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding SelectedCategory, Mode=TwoWay}"
+                              Background="Transparent">
+                        <ListView.ItemContainerTransitions>
+                            <TransitionCollection />
+                        </ListView.ItemContainerTransitions>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="MinHeight" Value="0" />
+                                <Setter Property="Margin" Value="8,4,8,4" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="UseSystemFocusVisuals" Value="True" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListViewItem">
+                                            <Grid>
+                                                <VisualStateManager.VisualStateGroups>
+                                                    <VisualStateGroup x:Name="CommonStates">
+                                                        <VisualState x:Name="Normal" />
+                                                        <VisualState x:Name="PointerOver">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="BgBorder.Background" Value="#eeeeee" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                        <VisualState x:Name="Pressed">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="BgBorder.Background" Value="#d5d5d5" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                        <VisualState x:Name="Selected">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="BgBorder.Background" Value="#eeeeee" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                        <VisualState x:Name="PointerOverSelected">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="BgBorder.Background" Value="#eeeeee" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                        <VisualState x:Name="PressedSelected">
+                                                            <VisualState.Setters>
+                                                                <Setter Target="BgBorder.Background" Value="#d5d5d5" />
+                                                            </VisualState.Setters>
+                                                        </VisualState>
+                                                    </VisualStateGroup>
+                                                </VisualStateManager.VisualStateGroups>
+
+                                                <Border x:Name="BgBorder"
+                                                        CornerRadius="4"
+                                                        Background="Transparent" />
+
+                                                <ContentPresenter x:Name="ContentPresenter"
+                                                                  Content="{TemplateBinding Content}"
+                                                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                  Padding="{TemplateBinding Padding}"
+                                                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal"
+                                            Padding="16,8">
+                                    <FontIcon Glyph="{Binding Icon}"
+                                              FontSize="14"
+                                              Foreground="#555555"
+                                              Margin="0,0,10,0" />
+                                    <TextBlock Text="{Binding Name}"
+                                               FontFamily="{StaticResource HarmonyOSRegular}"
+                                               FontSize="13"
+                                               Foreground="#333333"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+
+                <Border Grid.Column="1" Width="1" Background="#D0D0D0" />
+
+                <Grid Grid.Column="2" Background="#ffffff" Padding="28,24,28,24">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding SelectedCategory.Name}"
+                               FontFamily="{StaticResource HarmonyOSRegular}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="#222222"
+                               Margin="0,0,0,20" />
+
+                    <Grid Grid.Row="1"
+                          Visibility="{Binding IsGeneralSelected, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding LanguageLabel}"
+                                       FontFamily="{StaticResource HarmonyOSRegular}"
+                                       FontSize="13"
+                                       Foreground="#666666"
+                                       Margin="0,0,0,6" />
+
+                            <ComboBox ItemsSource="{Binding LanguageOptions}"
+                                      SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                                      DisplayMemberPath="DisplayName"
+                                      FontFamily="{StaticResource HarmonyOSRegular}"
+                                      FontSize="13"
+                                      MaxWidth="240" />
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1"
+                          Visibility="{Binding IsShortcutsSelected, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock Text="{Binding ShortcutsPlaceholder}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontFamily="{StaticResource HarmonyOSRegular}"
+                                   FontSize="13"
+                                   Foreground="#999999" />
+                    </Grid>
+                </Grid>
             </Grid>
         </Border>
     </Grid>
