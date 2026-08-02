@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using Demo.ViewModels;
+using Demo.Views;
 using System;
 using System.Numerics;
 using Windows.Foundation;
@@ -22,8 +23,6 @@ namespace Demo
         private readonly Storyboard _collapseStoryboard = new();
         private readonly Storyboard _borderFocusIn = new();
         private readonly Storyboard _borderFocusOut = new();
-        private readonly Storyboard _settingsShow = new();
-        private readonly Storyboard _settingsHide = new();
 
         public MainWindow()
         {
@@ -50,29 +49,34 @@ namespace Demo
                 }
                 else if (e.PropertyName == nameof(MainViewModel.IsSettingsOpen))
                 {
-                    AnimateSettings();
+                    if (ViewModel.IsSettingsOpen)
+                    {
+                        settingsHost.Show();
+                    }
+                    else
+                    {
+                        settingsHost.Hide();
+                    }
                 }
             };
 
+            var displayArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
+            var workArea = displayArea.WorkArea;
+            var width = (int)(workArea.Width * 0.75);
+            var height = (int)(workArea.Height * 0.80);
+            var winX = workArea.X + (workArea.Width - width) / 2;
+            var winY = workArea.Y + (workArea.Height - height) / 2;
+            AppWindow.MoveAndResize(new RectInt32(winX, winY, width, height));
+
             rootGrid.Loaded += (_, _) =>
             {
-                settingsOverlay.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(SettingsOverlay_PointerPressed), true);
+                settingsHost.DataContext = ViewModel.Settings;
+                settingsHost.CloseRequested += (_, _) => ViewModel.CloseSettingsCommand.Execute(null);
                 searchBoxBorder.AddHandler(UIElement.PointerEnteredEvent, new PointerEventHandler(SearchBox_PointerEntered), true);
                 searchBoxBorder.AddHandler(UIElement.PointerExitedEvent, new PointerEventHandler(SearchBox_PointerExited), true);
                 searchBoxBorder.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(SearchBox_PointerPressed), true);
                 searchBoxBorder.Shadow = new Microsoft.UI.Xaml.Media.ThemeShadow();
                 searchBoxBorder.Translation = new Vector3(0, 0, 4);
-
-                var displayArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
-                var workArea = displayArea.WorkArea;
-
-                var scale = rootGrid.XamlRoot.RasterizationScale;
-                var width = (int)(workArea.Width * 0.75);
-                var height = (int)(workArea.Height * 0.80);
-                var x = workArea.X + (workArea.Width - width) / 2;
-                var y = workArea.Y + (workArea.Height - height) / 2;
-
-                AppWindow.MoveAndResize(new RectInt32(x, y, width, height));
             };
         }
 
@@ -105,13 +109,14 @@ namespace Demo
 
             var expandContentMargin = new DoubleAnimation
             {
-                From = -261,
-                To = 0,
+                From = 0.0,
+                To = 261.0,
                 Duration = duration,
-                EasingFunction = ease
+                EasingFunction = ease,
+                EnableDependentAnimation = true
             };
-            Storyboard.SetTarget(expandContentMargin, contentTransform);
-            Storyboard.SetTargetProperty(expandContentMargin, "X");
+            Storyboard.SetTarget(expandContentMargin, contentSpacer);
+            Storyboard.SetTargetProperty(expandContentMargin, "Width");
             _expandStoryboard.Children.Add(expandContentMargin);
 
             var collapseAnim = new DoubleAnimation
@@ -138,17 +143,21 @@ namespace Demo
 
             var collapseContentMargin = new DoubleAnimation
             {
-                From = 0,
-                To = -261,
+                From = 261.0,
+                To = 0.0,
                 Duration = duration,
-                EasingFunction = ease
+                EasingFunction = ease,
+                EnableDependentAnimation = true
             };
-            Storyboard.SetTarget(collapseContentMargin, contentTransform);
-            Storyboard.SetTargetProperty(collapseContentMargin, "X");
+            Storyboard.SetTarget(collapseContentMargin, contentSpacer);
+            Storyboard.SetTargetProperty(collapseContentMargin, "Width");
             _collapseStoryboard.Children.Add(collapseContentMargin);
             _collapseStoryboard.Completed += (_, _) =>
             {
-                sidebarSeparator.Visibility = Visibility.Collapsed;
+                if (!ViewModel.IsSidebarExpanded)
+                {
+                    sidebarSeparator.Visibility = Visibility.Collapsed;
+                }
             };
 
             var borderEase = new CubicEase { EasingMode = EasingMode.EaseOut };
@@ -173,79 +182,6 @@ namespace Demo
             Storyboard.SetTarget(focusOut, searchBoxBorder);
             Storyboard.SetTargetProperty(focusOut, "(Border.BorderBrush).(SolidColorBrush.Color)");
             _borderFocusOut.Children.Add(focusOut);
-
-            var settingsEase = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var settingsDuration = TimeSpan.FromMilliseconds(200);
-
-            var overlayShowOpacity = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(overlayShowOpacity, settingsOverlay);
-            Storyboard.SetTargetProperty(overlayShowOpacity, "Opacity");
-            _settingsShow.Children.Add(overlayShowOpacity);
-
-            var panelShowY = new DoubleAnimation
-            {
-                From = 50,
-                To = 0,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(panelShowY, settingsPanelTransform);
-            Storyboard.SetTargetProperty(panelShowY, "Y");
-            _settingsShow.Children.Add(panelShowY);
-
-            var panelShowOpacity = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(panelShowOpacity, settingsPanel);
-            Storyboard.SetTargetProperty(panelShowOpacity, "Opacity");
-            _settingsShow.Children.Add(panelShowOpacity);
-
-            var overlayHideOpacity = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(overlayHideOpacity, settingsOverlay);
-            Storyboard.SetTargetProperty(overlayHideOpacity, "Opacity");
-            _settingsHide.Children.Add(overlayHideOpacity);
-
-            var panelHideOpacity = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(panelHideOpacity, settingsPanel);
-            Storyboard.SetTargetProperty(panelHideOpacity, "Opacity");
-            _settingsHide.Children.Add(panelHideOpacity);
-
-            var panelHideY = new DoubleAnimation
-            {
-                From = 0,
-                To = -50,
-                Duration = settingsDuration,
-                EasingFunction = settingsEase
-            };
-            Storyboard.SetTarget(panelHideY, settingsPanelTransform);
-            Storyboard.SetTargetProperty(panelHideY, "Y");
-            _settingsHide.Children.Add(panelHideY);
-            _settingsHide.Completed += (_, _) =>
-            {
-                settingsOverlay.Visibility = Visibility.Collapsed;
-            };
         }
 
         private void AnimateBackground(Color to, int durationMs)
@@ -267,29 +203,18 @@ namespace Demo
         {
             if (ViewModel.IsSidebarExpanded)
             {
+                _collapseStoryboard.Stop();
                 sidebarSeparator.Visibility = Visibility.Visible;
                 _expandStoryboard.Begin();
             }
             else
             {
+                _expandStoryboard.Stop();
                 _collapseStoryboard.Begin();
             }
         }
 
-        private void AnimateSettings()
-        {
-            if (ViewModel.IsSettingsOpen)
-            {
-                settingsOverlay.Visibility = Visibility.Visible;
-                settingsPanelTransform.Y = 50;
-                settingsPanel.Opacity = 0;
-                _settingsShow.Begin();
-            }
-            else
-            {
-                _settingsHide.Begin();
-            }
-        }
+        
 
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
@@ -317,13 +242,7 @@ namespace Demo
             AnimateBackground(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), 80);
         }
 
-        private void SettingsOverlay_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            if (e.OriginalSource == settingsOverlay)
-            {
-                ViewModel.CloseSettingsCommand.Execute(null);
-            }
-        }
+        
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {

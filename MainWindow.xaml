@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Demo"
+    xmlns:views="using:Demo.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -25,7 +26,7 @@
 
         <Grid x:Name="AppTitleBar"
               Grid.Row="0"
-              Height="47"
+              Height="47.5"
               Background="#80F0F0F0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="LeftPaddingColumn" Width="0" />
@@ -53,7 +54,7 @@
 
             <TextBlock x:Name="TitleBarTextBlock"
                        Grid.Column="2"
-                       Text="你好"
+                       Text="{x:Bind ViewModel.AppTitleText, Mode=OneWay}"
                        Style="{StaticResource CaptionTextBlockStyle}"
                        VerticalAlignment="Center"
                        Margin="8,0,0,0" />
@@ -73,11 +74,22 @@
 
         <Grid Grid.Row="2" Background="#B0FFFFFF">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="261" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0" x:Name="sidebarContainer">
+            <Grid Grid.Column="1" x:Name="contentArea">
+                <TextBlock Text="{x:Bind ViewModel.ContentPlaceholderText, Mode=OneWay}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Foreground="#80909090"
+                           FontFamily="{StaticResource HarmonyOSRegular}"
+                           FontSize="14" />
+            </Grid>
+
+            <Grid Grid.Column="0" x:Name="contentSpacer" Width="261" />
+
+            <Grid x:Name="sidebarContainer" Width="261" HorizontalAlignment="Left" Grid.Column="0" Grid.ColumnSpan="2">
                 <Grid.RenderTransform>
                     <TranslateTransform x:Name="sidebarTransform" />
                 </Grid.RenderTransform>
@@ -99,7 +111,7 @@
                             BorderThickness="1"
                             CornerRadius="6"
                             x:Name="searchBoxBorder">
-                        <TextBox PlaceholderText="筛选文件"
+                        <TextBox PlaceholderText="{x:Bind ViewModel.SearchBoxPlaceholder, Mode=OneWay}"
                                  FontFamily="{StaticResource HarmonyOSRegular}"
                                  Style="{StaticResource SearchTextBoxStyle}"
                                  GotFocus="SearchBox_GotFocus"
@@ -115,50 +127,13 @@
                         Background="#40999999"
                         Visibility="Visible" />
             </Grid>
-
-            <Grid Grid.Column="1" x:Name="contentArea">
-                <Grid.RenderTransform>
-                    <TranslateTransform x:Name="contentTransform" />
-                </Grid.RenderTransform>
-                <TextBlock Text="占位文字"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Foreground="#80909090"
-                           FontFamily="{StaticResource HarmonyOSRegular}"
-                           FontSize="14" />
-            </Grid>
         </Grid>
 
         <Border Grid.Row="3" Height="1" Background="#40999999" />
 
         <Grid Grid.Row="4" Height="32" Background="#B0FFFFFF" />
 
-        <Grid x:Name="settingsOverlay"
-              Grid.RowSpan="5"
-              Opacity="0"
-              Visibility="Collapsed"
-              Background="#60000000">
-            <Grid.RenderTransform>
-                <TranslateTransform x:Name="overlayTransform" />
-            </Grid.RenderTransform>
-
-            <Border x:Name="settingsPanel"
-                    Width="420"
-                    Height="320"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Background="#F0FFFFFF"
-                    CornerRadius="8">
-                <Border.RenderTransform>
-                    <TranslateTransform x:Name="settingsPanelTransform" />
-                </Border.RenderTransform>
-                <TextBlock Text="设置"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           FontFamily="{StaticResource HarmonyOSRegular}"
-                           FontSize="16"
-                           Foreground="#333333" />
-            </Border>
-        </Grid>
+        <views:SettingsPage x:Name="settingsHost"
+                             Grid.RowSpan="5" />
     </Grid>
 </Window>
