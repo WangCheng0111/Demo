@@ -32,6 +32,16 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsSettingsOpen { get; set; }
 
+    [ObservableProperty]
+    private string _searchText = "";
+
+    public bool IsSearchNotEmpty => !string.IsNullOrEmpty(SearchText);
+
+    partial void OnSearchTextChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsSearchNotEmpty));
+    }
+
     [RelayCommand]
     private void ToggleSidebar()
     {
@@ -48,5 +58,11 @@ public partial class MainViewModel : ObservableObject
     private void CloseSettings()
     {
         IsSettingsOpen = false;
+    }
+
+    [RelayCommand]
+    private void ClearSearch()
+    {
+        SearchText = string.Empty;
     }
 }

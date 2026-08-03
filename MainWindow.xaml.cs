@@ -1,6 +1,7 @@
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -27,6 +28,8 @@ namespace Demo
         public MainWindow()
         {
             InitializeComponent();
+
+            rootGrid.DataContext = ViewModel;
 
             ExtendsContentIntoTitleBar = true;
             if (ExtendsContentIntoTitleBar == true)
@@ -229,7 +232,10 @@ namespace Demo
 
         private void SearchBox_PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            AnimateBackground(Color.FromArgb(0xFF, 0xF4, 0xF4, 0xF4), 150);
+            var color = searchBox.FocusState != FocusState.Unfocused
+                ? Color.FromArgb(0xFF, 0xFB, 0xFB, 0xFA)
+                : Color.FromArgb(0xFF, 0xF4, 0xF4, 0xF4);
+            AnimateBackground(color, 150);
         }
 
         private void SearchBox_PointerExited(object sender, PointerRoutedEventArgs e)

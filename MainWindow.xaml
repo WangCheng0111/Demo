@@ -111,7 +111,9 @@
                             BorderThickness="1"
                             CornerRadius="6"
                             x:Name="searchBoxBorder">
-                        <TextBox PlaceholderText="{x:Bind ViewModel.SearchBoxPlaceholder, Mode=OneWay}"
+                        <TextBox x:Name="searchBox"
+                                 Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 PlaceholderText="{x:Bind ViewModel.SearchBoxPlaceholder, Mode=OneWay}"
                                  FontFamily="{StaticResource HarmonyOSRegular}"
                                  Style="{StaticResource SearchTextBoxStyle}"
                                  GotFocus="SearchBox_GotFocus"
