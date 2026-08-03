@@ -26,7 +26,7 @@
 
         <Grid x:Name="AppTitleBar"
               Grid.Row="0"
-              Height="47.5"
+              Height="48"
               Background="#80F0F0F0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="LeftPaddingColumn" Width="0" />
@@ -55,7 +55,7 @@
             <TextBlock x:Name="TitleBarTextBlock"
                        Grid.Column="2"
                        Text="{x:Bind ViewModel.AppTitleText, Mode=OneWay}"
-                       Style="{StaticResource CaptionTextBlockStyle}"
+                       FontFamily="{StaticResource HarmonyOSRegular}"
                        VerticalAlignment="Center"
                        Margin="8,0,0,0" />
 

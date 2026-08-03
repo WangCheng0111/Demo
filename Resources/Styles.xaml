@@ -81,6 +81,7 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{ThemeResource SystemControlForegroundBaseHighBrush}" />
         <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -97,11 +98,12 @@
                                   Foreground="#80909090"
                                   VerticalAlignment="Center" />
 
-                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                        <Grid Grid.Column="1">
                             <ScrollViewer x:Name="ContentElement"
+                                          Padding="0,3,0,3"
                                           VerticalScrollBarVisibility="Hidden"
                                           HorizontalScrollBarVisibility="Hidden"
-                                          VerticalAlignment="Stretch"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           FontFamily="{TemplateBinding FontFamily}" />
 
                             <TextBlock x:Name="PlaceholderTextContentPresenter"
@@ -116,10 +118,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
-
-    <Style x:Key="CaptionTextBlockStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource HarmonyOSRegular}" />
     </Style>
 
 </ResourceDictionary>
