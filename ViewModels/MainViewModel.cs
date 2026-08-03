@@ -33,7 +33,7 @@ public partial class MainViewModel : ObservableObject
     public partial bool IsSettingsOpen { get; set; }
 
     [ObservableProperty]
-    private string _searchText = "";
+    public partial string SearchText { get; set; } = "";
 
     public bool IsSearchNotEmpty => !string.IsNullOrEmpty(SearchText);
 

@@ -102,7 +102,7 @@
 
                         <Grid Grid.Column="1">
                             <ScrollViewer x:Name="ContentElement"
-                                          Padding="0,3,0,3"
+                                          Padding="4,3,0,3"
                                           VerticalScrollBarVisibility="Hidden"
                                           HorizontalScrollBarVisibility="Hidden"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
