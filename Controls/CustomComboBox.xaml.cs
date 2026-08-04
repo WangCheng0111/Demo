@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using Windows.System;
 using Windows.UI;
 
 namespace Demo.Controls;
@@ -112,7 +113,44 @@ public sealed partial class CustomComboBox : UserControl
         if (current is UIElement root)
         {
             root.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(Root_PointerPressed), true);
+            root.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler(Root_KeyDown), true);
         }
+    }
+
+    private void Root_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (!_isPopupOpen) return;
+        switch (e.Key)
+        {
+            case VirtualKey.Up:
+                MoveSelection(-1);
+                e.Handled = true;
+                break;
+            case VirtualKey.Down:
+                MoveSelection(1);
+                e.Handled = true;
+                break;
+            case VirtualKey.Enter:
+                ApplyCurrentSelection();
+                ClosePopup();
+                e.Handled = true;
+                break;
+        }
+    }
+
+    private void MoveSelection(int delta)
+    {
+        if (_itemMap.Count == 0) return;
+        var index = ItemList.SelectedIndex;
+        if (index < 0)
+        {
+            index = delta > 0 ? 0 : _itemMap.Count - 1;
+        }
+        else
+        {
+            index = Math.Clamp(index + delta, 0, _itemMap.Count - 1);
+        }
+        ItemList.SelectedIndex = index;
     }
 
     private void Root_PointerPressed(object sender, PointerRoutedEventArgs e)
@@ -238,19 +276,28 @@ public sealed partial class CustomComboBox : UserControl
         return item.ToString() ?? string.Empty;
     }
 
-    private void ItemList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ItemList_ItemClick(object sender, ItemClickEventArgs e)
     {
-        if (_suppressSelectionSync) return;
+        ApplySelectionByItem(e.ClickedItem);
+        ClosePopup();
+    }
+
+    private void ApplySelectionByItem(object clickedItem)
+    {
+        var index = ItemList.Items.IndexOf(clickedItem);
+        if (index < 0 || index >= _itemMap.Count) return;
         _suppressSelectionSync = true;
-        SelectedItem = ItemList.SelectedIndex >= 0 && ItemList.SelectedIndex < _itemMap.Count
-            ? _itemMap[ItemList.SelectedIndex]
-            : null;
+        SelectedItem = _itemMap[index];
         _suppressSelectionSync = false;
     }
 
-    private void ItemList_ItemClick(object sender, ItemClickEventArgs e)
+    private void ApplyCurrentSelection()
     {
-        ClosePopup();
+        var index = ItemList.SelectedIndex;
+        if (index < 0 || index >= _itemMap.Count) return;
+        _suppressSelectionSync = true;
+        SelectedItem = _itemMap[index];
+        _suppressSelectionSync = false;
     }
 
     private void Body_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -293,6 +340,7 @@ public sealed partial class CustomComboBox : UserControl
     {
         _isPopupOpen = true;
         _closeAnimationRunning = false;
+        Focus(FocusState.Programmatic);
         DropDownPopup.VerticalOffset = Body.ActualHeight + 4;
         DropDownPopup.HorizontalOffset = 0;
         PopupBorder.Opacity = 0;

@@ -50,7 +50,8 @@
         </Border>
 
         <Popup x:Name="DropDownPopup"
-               IsLightDismissEnabled="False">
+               IsLightDismissEnabled="False"
+               ShouldConstrainToRootBounds="True">
             <Border x:Name="PopupBorder"
                     Background="#FFFFFF"
                     BorderBrush="#D0D0D0"
@@ -65,7 +66,6 @@
                           Padding="4"
                           Background="Transparent"
                           IsItemClickEnabled="True"
-                          SelectionChanged="ItemList_SelectionChanged"
                           ItemClick="ItemList_ItemClick">
                     <ListView.ItemTemplate>
                         <DataTemplate>
