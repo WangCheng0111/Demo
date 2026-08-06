@@ -255,7 +255,7 @@ public sealed partial class CustomComboBox : UserControl
         UpdateDisplayText();
         if (_suppressSelectionSync) return;
         _suppressSelectionSync = true;
-        ItemList.SelectedIndex = _itemMap.IndexOf(SelectedItem);
+        ItemList.SelectedIndex = SelectedItem is null ? -1 : _itemMap.IndexOf(SelectedItem);
         _suppressSelectionSync = false;
     }
 

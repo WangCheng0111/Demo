@@ -23,7 +23,7 @@ public partial class SettingsViewModel : ObservableObject
     public List<SettingsCategory> Categories { get; } = new()
     {
         new("Settings.CategoryGeneral", "\uE779", "General"),
-        new("Settings.CategoryShortcuts", "\uE910", "Shortcuts"),
+        new("Settings.CategoryShortcuts", "\uE765", "Shortcuts"),
     };
 
     [ObservableProperty]
