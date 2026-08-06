@@ -30,6 +30,7 @@ namespace Demo
             InitializeComponent();
 
             rootGrid.DataContext = ViewModel;
+            ViewModel.Document.Hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
 
             ExtendsContentIntoTitleBar = true;
             if (ExtendsContentIntoTitleBar == true)
@@ -43,6 +44,9 @@ namespace Demo
             Activated += MainWindow_Activated;
             AppTitleBar.SizeChanged += AppTitleBar_SizeChanged;
             AppTitleBar.Loaded += AppTitleBar_Loaded;
+            Closed += MainWindow_Closed;
+
+            rootGrid.Loaded += (_, _) => _ = ViewModel.Document.InitializeAsync();
 
             ViewModel.PropertyChanged += (s, e) =>
             {
@@ -259,6 +263,14 @@ namespace Demo
             TitleBarTextBlock.Foreground = foreground;
             SidebarToggleButton.Foreground = foreground;
             SettingsButton.Foreground = foreground;
+            ThemeToggleButton.Foreground = foreground;
+            OpenButton.Foreground = foreground;
+            ExportButton.Foreground = foreground;
+        }
+
+        private void MainWindow_Closed(object sender, WindowEventArgs args)
+        {
+            _ = ViewModel.Document.FlushSaveAsync();
         }
 
         private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -322,7 +334,22 @@ namespace Demo
                 SettingsButton.ActualWidth, SettingsButton.ActualHeight));
             Windows.Graphics.RectInt32 SettingsRect = GetRect(bounds, scaleAdjustment);
 
-            var rectArray = new Windows.Graphics.RectInt32[] { SidebarRect, SettingsRect };
+            transform = ThemeToggleButton.TransformToVisual(null);
+            bounds = transform.TransformBounds(new Rect(0, 0,
+                ThemeToggleButton.ActualWidth, ThemeToggleButton.ActualHeight));
+            Windows.Graphics.RectInt32 ThemeToggleRect = GetRect(bounds, scaleAdjustment);
+
+            transform = OpenButton.TransformToVisual(null);
+            bounds = transform.TransformBounds(new Rect(0, 0,
+                OpenButton.ActualWidth, OpenButton.ActualHeight));
+            Windows.Graphics.RectInt32 OpenRect = GetRect(bounds, scaleAdjustment);
+
+            transform = ExportButton.TransformToVisual(null);
+            bounds = transform.TransformBounds(new Rect(0, 0,
+                ExportButton.ActualWidth, ExportButton.ActualHeight));
+            Windows.Graphics.RectInt32 ExportRect = GetRect(bounds, scaleAdjustment);
+
+            var rectArray = new Windows.Graphics.RectInt32[] { SidebarRect, SettingsRect, ThemeToggleRect, OpenRect, ExportRect };
 
             InputNonClientPointerSource nonClientInputSrc =
                 InputNonClientPointerSource.GetForWindowId(AppWindow.Id);

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Markdown Editor</title>
+  <link id="md-theme" rel="stylesheet" href="github-markdown.css">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: transparent;
+    }
+
+    .markdown-body {
+      box-sizing: border-box;
+      min-width: 200px;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 32px;
+      height: 100vh;
+      background-color: transparent;
+      cursor: text;
+      transition: background-color 0.2s ease;
+    }
+
+    @media (max-width: 767px) {
+      .markdown-body {
+        padding: 15px;
+      }
+    }
+
+    .markdown-body .ProseMirror,
+    .markdown-body.ProseMirror {
+      min-height: 100%;
+      outline: none;
+      caret-color: #0969da;
+    }
+
+    .markdown-body .ProseMirror > *:first-child {
+      margin-top: 0;
+    }
+
+    .markdown-body pre {
+      border-radius: 6px;
+      line-height: 1.55;
+    }
+
+    .markdown-body pre code {
+      white-space: pre;
+      word-break: normal;
+    }
+
+    .markdown-body code {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+
+    ::selection {
+      background: #b3d7ff;
+    }
+
+    body[data-theme="dark"] .markdown-body {
+      background: #0d1117;
+    }
+
+    body[data-theme="dark"] .markdown-body .ProseMirror {
+      caret-color: #58a6ff;
+    }
+
+    body[data-theme="dark"] ::selection {
+      background: #264f78;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    body[data-theme="dark"] ::-webkit-scrollbar-thumb {
+      background: #424242;
+    }
+
+    body[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+      background: #565656;
+    }
+
+    body[data-theme="dark"] ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <article class="markdown-body" id="editor"></article>
+  <script type="module" src="editor.js"></script>
+  <script type="module">
+    import { initEditor } from './editor.js';
+    await initEditor(document.getElementById('editor'));
+  </script>
+</body>
+</html>
