@@ -1,3 +1,4 @@
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -5,6 +6,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
+using Demo.Services;
 using Demo.ViewModels;
 using Demo.Views;
 using System;
@@ -20,10 +22,15 @@ namespace Demo
     {
         public MainViewModel ViewModel { get; } = new();
 
-        private readonly Storyboard _expandStoryboard = new();
-        private readonly Storyboard _collapseStoryboard = new();
         private readonly Storyboard _borderFocusIn = new();
         private readonly Storyboard _borderFocusOut = new();
+
+        private const double MinSidebarWidth = 180;
+        private double _sidebarWidth = 261;
+        private Storyboard? _sidebarStoryboard;
+        private bool _isResizingSidebar;
+        private double _resizeStartPointerX;
+        private double _resizeStartWidth;
 
         public MainWindow()
         {
@@ -61,6 +68,21 @@ namespace Demo
                         settingsHost.Hide();
                     }
                 }
+                else if (e.PropertyName == nameof(MainViewModel.IsBooksOpen))
+                {
+                    if (ViewModel.IsBooksOpen)
+                    {
+                        booksHost.Show();
+                    }
+                    else
+                    {
+                        booksHost.Hide();
+                    }
+                }
+                else if (e.PropertyName == nameof(MainViewModel.SelectedChapter))
+                {
+                    ScrollToSelectedChapter();
+                }
             };
 
             var displayArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
@@ -75,94 +97,32 @@ namespace Demo
             {
                 settingsHost.DataContext = ViewModel.Settings;
                 settingsHost.CloseRequested += (_, _) => ViewModel.CloseSettingsCommand.Execute(null);
+                booksHost.CloseRequested += (_, _) => ViewModel.CloseBooksCommand.Execute(null);
                 searchBoxBorder.AddHandler(UIElement.PointerEnteredEvent, new PointerEventHandler(SearchBox_PointerEntered), true);
                 searchBoxBorder.AddHandler(UIElement.PointerExitedEvent, new PointerEventHandler(SearchBox_PointerExited), true);
                 searchBoxBorder.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler(SearchBox_PointerPressed), true);
                 searchBoxBorder.Shadow = new Microsoft.UI.Xaml.Media.ThemeShadow();
                 searchBoxBorder.Translation = new Vector3(0, 0, 4);
+
+                ScrollToSelectedChapter();
             };
+
+            Closed += (_, _) => BookLibrary.Instance.Save();
+        }
+
+        private void ScrollToSelectedChapter()
+        {
+            if (ViewModel.SelectedChapter == null) return;
+
+            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+            {
+                if (ViewModel.SelectedChapter == null) return;
+                chapterList.ScrollIntoView(ViewModel.SelectedChapter, ScrollIntoViewAlignment.Leading);
+            });
         }
 
         private void SetupAnimations()
         {
-            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var duration = TimeSpan.FromMilliseconds(250);
-
-            var expandAnim = new DoubleAnimation
-            {
-                From = -261,
-                To = 0,
-                Duration = duration,
-                EasingFunction = ease
-            };
-            Storyboard.SetTarget(expandAnim, sidebarTransform);
-            Storyboard.SetTargetProperty(expandAnim, "X");
-            _expandStoryboard.Children.Add(expandAnim);
-
-            var expandOpacity = new DoubleAnimation
-            {
-                From = 0,
-                To = 1,
-                Duration = duration,
-                EasingFunction = ease
-            };
-            Storyboard.SetTarget(expandOpacity, sidebarContent);
-            Storyboard.SetTargetProperty(expandOpacity, "Opacity");
-            _expandStoryboard.Children.Add(expandOpacity);
-
-            var expandContentMargin = new DoubleAnimation
-            {
-                From = 0.0,
-                To = 261.0,
-                Duration = duration,
-                EasingFunction = ease,
-                EnableDependentAnimation = true
-            };
-            Storyboard.SetTarget(expandContentMargin, contentSpacer);
-            Storyboard.SetTargetProperty(expandContentMargin, "Width");
-            _expandStoryboard.Children.Add(expandContentMargin);
-
-            var collapseAnim = new DoubleAnimation
-            {
-                From = 0,
-                To = -261,
-                Duration = duration,
-                EasingFunction = ease
-            };
-            Storyboard.SetTarget(collapseAnim, sidebarTransform);
-            Storyboard.SetTargetProperty(collapseAnim, "X");
-            _collapseStoryboard.Children.Add(collapseAnim);
-
-            var collapseOpacity = new DoubleAnimation
-            {
-                From = 1,
-                To = 0,
-                Duration = duration,
-                EasingFunction = ease
-            };
-            Storyboard.SetTarget(collapseOpacity, sidebarContent);
-            Storyboard.SetTargetProperty(collapseOpacity, "Opacity");
-            _collapseStoryboard.Children.Add(collapseOpacity);
-
-            var collapseContentMargin = new DoubleAnimation
-            {
-                From = 261.0,
-                To = 0.0,
-                Duration = duration,
-                EasingFunction = ease,
-                EnableDependentAnimation = true
-            };
-            Storyboard.SetTarget(collapseContentMargin, contentSpacer);
-            Storyboard.SetTargetProperty(collapseContentMargin, "Width");
-            _collapseStoryboard.Children.Add(collapseContentMargin);
-            _collapseStoryboard.Completed += (_, _) =>
-            {
-                if (!ViewModel.IsSidebarExpanded)
-                {
-                    sidebarSeparator.Visibility = Visibility.Collapsed;
-                }
-            };
-
             var borderEase = new CubicEase { EasingMode = EasingMode.EaseOut };
             var borderDuration = TimeSpan.FromMilliseconds(200);
 
@@ -204,17 +164,116 @@ namespace Demo
 
         private void AnimateSidebar()
         {
+            _sidebarStoryboard?.Stop();
+            var storyboard = BuildSidebarStoryboard(ViewModel.IsSidebarExpanded);
+            _sidebarStoryboard = storyboard;
             if (ViewModel.IsSidebarExpanded)
             {
-                _collapseStoryboard.Stop();
                 sidebarSeparator.Visibility = Visibility.Visible;
-                _expandStoryboard.Begin();
             }
-            else
+            storyboard.Begin();
+        }
+
+        private Storyboard BuildSidebarStoryboard(bool expand)
+        {
+            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+            var duration = TimeSpan.FromMilliseconds(250);
+
+            var storyboard = new Storyboard();
+
+            var xAnim = new DoubleAnimation
             {
-                _expandStoryboard.Stop();
-                _collapseStoryboard.Begin();
+                From = expand ? -_sidebarWidth : 0,
+                To = expand ? 0 : -_sidebarWidth,
+                Duration = duration,
+                EasingFunction = ease
+            };
+            Storyboard.SetTarget(xAnim, sidebarTransform);
+            Storyboard.SetTargetProperty(xAnim, "X");
+            storyboard.Children.Add(xAnim);
+
+            var opacityAnim = new DoubleAnimation
+            {
+                From = expand ? 0 : 1,
+                To = expand ? 1 : 0,
+                Duration = duration,
+                EasingFunction = ease
+            };
+            Storyboard.SetTarget(opacityAnim, sidebarContent);
+            Storyboard.SetTargetProperty(opacityAnim, "Opacity");
+            storyboard.Children.Add(opacityAnim);
+
+            var widthAnim = new DoubleAnimation
+            {
+                From = expand ? 0 : _sidebarWidth,
+                To = expand ? _sidebarWidth : 0,
+                Duration = duration,
+                EasingFunction = ease,
+                EnableDependentAnimation = true
+            };
+            Storyboard.SetTarget(widthAnim, contentSpacer);
+            Storyboard.SetTargetProperty(widthAnim, "Width");
+            storyboard.Children.Add(widthAnim);
+
+            if (!expand)
+            {
+                storyboard.Completed += (_, _) =>
+                {
+                    if (!ViewModel.IsSidebarExpanded)
+                    {
+                        sidebarSeparator.Visibility = Visibility.Collapsed;
+                    }
+                };
             }
+
+            return storyboard;
+        }
+
+        private double MaxSidebarWidth => rootGrid.ActualWidth * 0.5;
+
+        private void SidebarResizeHandle_PointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (!ViewModel.IsSidebarExpanded) return;
+
+            _sidebarStoryboard?.Stop();
+            sidebarTransform.X = 0;
+            sidebarContent.Opacity = 1;
+            contentSpacer.Width = _sidebarWidth;
+            sidebarSeparator.Visibility = Visibility.Visible;
+
+            _isResizingSidebar = true;
+            _resizeStartPointerX = e.GetCurrentPoint(rootGrid).Position.X;
+            _resizeStartWidth = _sidebarWidth;
+            sidebarResizeHandle.CapturePointer(e.Pointer);
+            e.Handled = true;
+        }
+
+        private void SidebarResizeHandle_PointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isResizingSidebar) return;
+
+            var currentX = e.GetCurrentPoint(rootGrid).Position.X;
+            var newWidth = Math.Clamp(_resizeStartWidth + (currentX - _resizeStartPointerX), MinSidebarWidth, MaxSidebarWidth);
+            if (Math.Abs(newWidth - _sidebarWidth) < 0.5) return;
+
+            _sidebarWidth = newWidth;
+            sidebarContainer.Width = newWidth;
+            contentSpacer.Width = newWidth;
+            sidebarTransform.X = 0;
+        }
+
+        private void SidebarResizeHandle_PointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isResizingSidebar) return;
+            _isResizingSidebar = false;
+            sidebarResizeHandle.ReleasePointerCapture(e.Pointer);
+        }
+
+        private void SidebarResizeHandle_PointerCanceled(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_isResizingSidebar) return;
+            _isResizingSidebar = false;
+            sidebarResizeHandle.ReleasePointerCapture(e.Pointer);
         }
 
         
@@ -258,6 +317,7 @@ namespace Demo
 
             TitleBarTextBlock.Foreground = foreground;
             SidebarToggleButton.Foreground = foreground;
+            BooksButton.Foreground = foreground;
             SettingsButton.Foreground = foreground;
         }
 
@@ -317,12 +377,17 @@ namespace Demo
                 SidebarToggleButton.ActualWidth, SidebarToggleButton.ActualHeight));
             Windows.Graphics.RectInt32 SidebarRect = GetRect(bounds, scaleAdjustment);
 
+            transform = BooksButton.TransformToVisual(null);
+            bounds = transform.TransformBounds(new Rect(0, 0,
+                BooksButton.ActualWidth, BooksButton.ActualHeight));
+            Windows.Graphics.RectInt32 BooksRect = GetRect(bounds, scaleAdjustment);
+
             transform = SettingsButton.TransformToVisual(null);
             bounds = transform.TransformBounds(new Rect(0, 0,
                 SettingsButton.ActualWidth, SettingsButton.ActualHeight));
             Windows.Graphics.RectInt32 SettingsRect = GetRect(bounds, scaleAdjustment);
 
-            var rectArray = new Windows.Graphics.RectInt32[] { SidebarRect, SettingsRect };
+            var rectArray = new Windows.Graphics.RectInt32[] { SidebarRect, BooksRect, SettingsRect };
 
             InputNonClientPointerSource nonClientInputSrc =
                 InputNonClientPointerSource.GetForWindowId(AppWindow.Id);

@@ -16,13 +16,34 @@
     <value>こんにちは</value>
   </data>
   <data name="SearchBox.PlaceholderText" xml:space="preserve">
-    <value>ファイルを絞り込む</value>
+    <value>章を検索</value>
+  </data>
+  <data name="Sidebar.EmptyHint" xml:space="preserve">
+    <value>書籍がありません</value>
+  </data>
+  <data name="Reader.ChapterPosition" xml:space="preserve">
+    <value>第 {0}/{1} 章</value>
   </data>
   <data name="ContentPlaceholder.Text" xml:space="preserve">
     <value>プレースホルダー</value>
   </data>
+  <data name="Content.EmptyHint" xml:space="preserve">
+    <value>ここをダブルクリックして書籍をインポート</value>
+  </data>
+  <data name="Import.Parsing" xml:space="preserve">
+    <value>書籍を解析中...</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>インポートに失敗しました：{0}</value>
+  </data>
   <data name="SettingsPanel.Title" xml:space="preserve">
     <value>設定</value>
+  </data>
+  <data name="BooksPanel.Title" xml:space="preserve">
+    <value>本棚</value>
+  </data>
+  <data name="BooksPanel.EmptyHint" xml:space="preserve">
+    <value>書籍がありません。コンテンツ領域をダブルクリックしてインポート</value>
   </data>
   <data name="Settings.LanguageLabel" xml:space="preserve">
     <value>言語</value>

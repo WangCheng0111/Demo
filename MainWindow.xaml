@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Demo"
     xmlns:views="using:Demo.Views"
+    xmlns:controls="using:Demo.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -35,6 +36,7 @@
                 <ColumnDefinition x:Name="LeftDragColumn" Width="*" />
                 <ColumnDefinition x:Name="RightDragColumn" Width="*" MinWidth="48" />
                 <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition x:Name="RightPaddingColumn" Width="0" />
             </Grid.ColumnDefinitions>
 
@@ -54,13 +56,23 @@
 
             <TextBlock x:Name="TitleBarTextBlock"
                        Grid.Column="2"
-                       Text="{x:Bind ViewModel.AppTitleText, Mode=OneWay}"
+                       Text="{x:Bind ViewModel.CurrentBookTitle, Mode=OneWay}"
                        FontFamily="{StaticResource HarmonyOSRegular}"
                        VerticalAlignment="Center"
                        Margin="8,0,0,0" />
 
-            <Button x:Name="SettingsButton"
+            <Button x:Name="BooksButton"
                     Grid.Column="5"
+                    Margin="0,0,12,0"
+                    Style="{StaticResource SidebarToggleButtonStyle}"
+                    Command="{x:Bind ViewModel.OpenBooksCommand}">
+                <FontIcon Glyph="&#xE8F1;"
+                          FontSize="16"
+                          FontFamily="{ThemeResource SymbolThemeFontFamily}" />
+            </Button>
+
+            <Button x:Name="SettingsButton"
+                    Grid.Column="6"
                     Margin="0,0,12,0"
                     Style="{StaticResource SidebarToggleButtonStyle}"
                     Command="{x:Bind ViewModel.OpenSettingsCommand}">
@@ -79,33 +91,28 @@
             </Grid.ColumnDefinitions>
 
             <Grid Grid.Column="1" x:Name="contentArea">
-                <TextBlock Text="{x:Bind ViewModel.ContentPlaceholderText, Mode=OneWay}"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"
-                           Foreground="#80909090"
-                           FontFamily="{StaticResource HarmonyOSRegular}"
-                           FontSize="14" />
+                <views:ReaderView x:Name="readerHost" />
             </Grid>
 
-            <Grid Grid.Column="0" x:Name="contentSpacer" Width="261" />
+            <Grid Grid.Column="0" x:Name="contentSpacer" Width="0" />
 
             <Grid x:Name="sidebarContainer" Width="261" HorizontalAlignment="Left" Grid.Column="0" Grid.ColumnSpan="2">
                 <Grid.RenderTransform>
-                    <TranslateTransform x:Name="sidebarTransform" />
+                    <TranslateTransform x:Name="sidebarTransform" X="-261" />
                 </Grid.RenderTransform>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0" x:Name="sidebarContent" Background="#B0FDFDFC">
+                <Grid Grid.Column="0" x:Name="sidebarContent" Background="#B0FDFDFC" Opacity="0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <Border Grid.Row="0"
-                            Margin="12,12,12,4"
+                            Margin="12,12,12,8"
                             Background="Transparent"
                             BorderBrush="#60909090"
                             BorderThickness="1"
@@ -120,22 +127,134 @@
                                  LostFocus="SearchBox_LostFocus" />
                     </Border>
 
-                    <Grid Grid.Row="1" />
+                    <Grid Grid.Row="1">
+                        <ListView x:Name="chapterList"
+                                  ItemsSource="{x:Bind ViewModel.Chapters, Mode=OneWay}"
+                                  SelectedItem="{x:Bind ViewModel.SelectedChapter, Mode=TwoWay}"
+                                  Background="Transparent"
+                                  Padding="12,4,12,8">
+                            <ListView.ItemContainerTransitions>
+                                <TransitionCollection />
+                            </ListView.ItemContainerTransitions>
+                            <ListView.ItemContainerStyle>
+                                <Style TargetType="ListViewItem">
+                                    <Setter Property="Padding" Value="12,6" />
+                                    <Setter Property="MinHeight" Value="0" />
+                                    <Setter Property="Margin" Value="4,3" />
+                                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    <Setter Property="UseSystemFocusVisuals" Value="True" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="ListViewItem">
+                                                <Grid>
+                                                    <VisualStateManager.VisualStateGroups>
+                                                        <VisualStateGroup x:Name="CommonStates">
+                                                            <VisualState x:Name="Normal" />
+                                                            <VisualState x:Name="PointerOver">
+                                                                <VisualState.Setters>
+                                                                    <Setter Target="BgBorder.Background" Value="#F5F5F5" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                            <VisualState x:Name="Pressed">
+                                                                <VisualState.Setters>
+                                                                    <Setter Target="BgBorder.Background" Value="#E8E8E8" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                            <VisualState x:Name="Selected">
+                                                                <VisualState.Setters>
+                                                                    <Setter Target="BgBorder.Background" Value="#EEEEEE" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                            <VisualState x:Name="PointerOverSelected">
+                                                                <VisualState.Setters>
+                                                                    <Setter Target="BgBorder.Background" Value="#EEEEEE" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                            <VisualState x:Name="PressedSelected">
+                                                                <VisualState.Setters>
+                                                                    <Setter Target="BgBorder.Background" Value="#E8E8E8" />
+                                                                </VisualState.Setters>
+                                                            </VisualState>
+                                                        </VisualStateGroup>
+                                                    </VisualStateManager.VisualStateGroups>
+
+                                                    <Border x:Name="BgBorder"
+                                                            CornerRadius="4"
+                                                            Background="Transparent" />
+
+                                                    <ContentPresenter x:Name="ContentPresenter"
+                                                                      Content="{TemplateBinding Content}"
+                                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                                      Padding="{TemplateBinding Padding}"
+                                                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                                </Grid>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ListView.ItemContainerStyle>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Title}"
+                                               FontFamily="{StaticResource HarmonyOSRegular}"
+                                               FontSize="13"
+                                               Foreground="#333333"
+                                               TextTrimming="CharacterEllipsis"
+                                               VerticalAlignment="Center" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <TextBlock Text="{Binding SidebarEmptyHint}"
+                                   FontFamily="{StaticResource HarmonyOSRegular}"
+                                   FontSize="13"
+                                   Foreground="#80909090"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding ShowSidebarEmpty, Converter={StaticResource BoolToVisibility}}" />
+                    </Grid>
                 </Grid>
 
-                <Border Grid.Column="1"
-                        x:Name="sidebarSeparator"
-                        Width="1"
-                        Background="#40999999"
-                        Visibility="Visible" />
+                <controls:SidebarResizeHandle Grid.Column="1"
+                      x:Name="sidebarResizeHandle"
+                      Width="8"
+                      Background="Transparent"
+                      PointerPressed="SidebarResizeHandle_PointerPressed"
+                      PointerMoved="SidebarResizeHandle_PointerMoved"
+                      PointerReleased="SidebarResizeHandle_PointerReleased"
+                      PointerCanceled="SidebarResizeHandle_PointerCanceled">
+                    <Border x:Name="sidebarSeparator"
+                            Width="1"
+                            HorizontalAlignment="Left"
+                            Background="#40999999"
+                            Visibility="Collapsed" />
+                </controls:SidebarResizeHandle>
             </Grid>
         </Grid>
 
         <Border Grid.Row="3" Height="1" Background="#40999999" />
 
-        <Grid Grid.Row="4" Height="32" Background="#B0FFFFFF" />
+        <Grid Grid.Row="4" Height="32" Background="#B0FFFFFF">
+            <TextBlock Text="{x:Bind ViewModel.ChapterPositionText, Mode=OneWay}"
+                       FontFamily="{StaticResource HarmonyOSRegular}"
+                       FontSize="12"
+                       Foreground="#80909090"
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0" />
+            <TextBlock Text="{x:Bind ViewModel.ReadingPercentText, Mode=OneWay}"
+                       FontFamily="{StaticResource HarmonyOSRegular}"
+                       FontSize="12"
+                       Foreground="#80909090"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       Margin="0,0,12,0" />
+        </Grid>
 
         <views:SettingsPage x:Name="settingsHost"
                              Grid.RowSpan="5" />
+
+        <views:BooksPage x:Name="booksHost"
+                         Grid.RowSpan="5" />
     </Grid>
 </Window>
