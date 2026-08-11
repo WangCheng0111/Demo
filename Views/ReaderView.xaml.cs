@@ -1,7 +1,6 @@
 using Demo.Models;
 using Demo.Services;
 using Demo.ViewModels;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -10,15 +9,13 @@ using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Windows.Foundation;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
 
 namespace Demo.Views;
 
 public sealed partial class ReaderView : UserControl
 {
     private ScrollViewer? _readerScroller;
-    private DispatcherQueueTimer? _saveTimer;
+    private int _loadToken;
 
     public ReaderView()
     {
@@ -30,7 +27,6 @@ public sealed partial class ReaderView : UserControl
 
     private void ReaderView_Loaded(object sender, RoutedEventArgs e)
     {
-        BookLibrary.Instance.CurrentBookChanged += (_, _) => LoadCurrentChapter();
         if (VM != null)
         {
             VM.PropertyChanged += OnViewModelPropertyChanged;
@@ -42,14 +38,6 @@ public sealed partial class ReaderView : UserControl
         {
             _readerScroller.ViewChanged += (_, e) => OnReaderScrollerViewChanged(e);
         }
-
-        _saveTimer = DispatcherQueue.CreateTimer();
-        _saveTimer.Interval = TimeSpan.FromMilliseconds(800);
-        _saveTimer.Tick += (_, _) =>
-        {
-            _saveTimer.Stop();
-            BookLibrary.Instance.Save();
-        };
 
         if (BookLibrary.Instance.CurrentBook != null)
         {
@@ -100,8 +88,7 @@ public sealed partial class ReaderView : UserControl
             book.CurrentParagraphIndex = topIndex;
         }
 
-        _saveTimer?.Stop();
-        _saveTimer?.Start();
+        BookLibrary.Instance.SaveDebounced();
     }
 
     private int GetTopVisibleParagraphIndex()
@@ -132,23 +119,18 @@ public sealed partial class ReaderView : UserControl
     {
         if (VM is not { } vm || vm.IsImporting) return;
 
-        var picker = new FileOpenPicker();
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(App.MainWindow!));
-        picker.FileTypeFilter.Add(".txt");
-        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-
-        var file = await picker.PickSingleFileAsync();
+        var file = await BookImporter.PickTxtFileAsync(App.MainWindow!);
         if (file == null) return;
 
         vm.IsImporting = true;
         try
         {
-            await BookLibrary.Instance.ImportBookAsync(file.Path);
-        }
-        catch (Exception ex)
-        {
-            vm.Paragraphs.Clear();
-            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Import.Error"], ex.Message) });
+            var error = await BookImporter.ImportAsync(file.Path);
+            if (error != null)
+            {
+                vm.Paragraphs.Clear();
+                vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Import.Error"], error.Message) });
+            }
         }
         finally
         {
@@ -169,9 +151,12 @@ public sealed partial class ReaderView : UserControl
         if (book.Chapters.Count == 0) return;
 
         var chapterIndex = Math.Clamp(book.CurrentChapterIndex, 0, book.Chapters.Count - 1);
+        var token = ++_loadToken;
         try
         {
             var paragraphs = await Task.Run(() => TxtParser.ReadChapterParagraphs(book, chapterIndex));
+            if (token != _loadToken) return;
+
             var fontFamily = new FontFamily(vm.Settings.FontFamilySource);
             foreach (var p in paragraphs)
             {
@@ -193,8 +178,9 @@ public sealed partial class ReaderView : UserControl
         }
         catch (Exception ex)
         {
+            if (token != _loadToken) return;
             vm.Paragraphs.Clear();
-            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Import.Error"], ex.Message) });
+            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Reader.LoadError"], ex.Message) });
         }
     }
 }

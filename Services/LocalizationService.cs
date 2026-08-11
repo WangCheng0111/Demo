@@ -29,7 +29,7 @@ public partial class LocalizationService : ObservableObject
     };
 
     [ObservableProperty]
-    private string _currentLanguage = DefaultLanguage;
+    public partial string CurrentLanguage { get; set; } = DefaultLanguage;
 
     private LocalizationService()
     {

@@ -24,9 +24,6 @@
   <data name="Reader.ChapterPosition" xml:space="preserve">
     <value>第 {0}/{1} 章</value>
   </data>
-  <data name="ContentPlaceholder.Text" xml:space="preserve">
-    <value>プレースホルダー</value>
-  </data>
   <data name="Content.EmptyHint" xml:space="preserve">
     <value>ここをダブルクリックして書籍をインポート</value>
   </data>
@@ -35,6 +32,9 @@
   </data>
   <data name="Import.Error" xml:space="preserve">
     <value>インポートに失敗しました：{0}</value>
+  </data>
+  <data name="Reader.LoadError" xml:space="preserve">
+    <value>読み込みに失敗しました：{0}</value>
   </data>
   <data name="SettingsPanel.Title" xml:space="preserve">
     <value>設定</value>

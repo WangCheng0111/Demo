@@ -280,8 +280,6 @@ namespace Demo
             sidebarResizeHandle.ReleasePointerCapture(e.Pointer);
         }
 
-        
-
         private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
         {
             _borderFocusOut.Stop();
@@ -310,8 +308,6 @@ namespace Demo
         {
             AnimateBackground(Color.FromArgb(0x00, 0xFF, 0xFF, 0xFF), 80);
         }
-
-        
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {

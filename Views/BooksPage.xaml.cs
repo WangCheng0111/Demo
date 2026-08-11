@@ -6,8 +6,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
-using Windows.Storage.Pickers;
-using WinRT.Interop;
 
 namespace Demo.Views;
 
@@ -166,26 +164,20 @@ public sealed partial class BooksPage : Page
         if (_isImporting) return;
         if (App.MainWindow is not MainWindow window) return;
 
-        var picker = new FileOpenPicker();
-        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(window));
-        picker.FileTypeFilter.Add(".txt");
-        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-
-        var file = await picker.PickSingleFileAsync();
+        var file = await BookImporter.PickTxtFileAsync(window);
         if (file == null) return;
 
         _isImporting = true;
         try
         {
-            await BookLibrary.Instance.ImportBookAsync(file.Path);
+            var error = await BookImporter.ImportAsync(file.Path);
             CloseRequested?.Invoke(this, EventArgs.Empty);
-        }
-        catch (Exception ex)
-        {
-            CloseRequested?.Invoke(this, EventArgs.Empty);
-            var vm = window.ViewModel;
-            vm.Paragraphs.Clear();
-            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(LocalizationService.Instance["Import.Error"], ex.Message) });
+            if (error != null)
+            {
+                var vm = window.ViewModel;
+                vm.Paragraphs.Clear();
+                vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(LocalizationService.Instance["Import.Error"], error.Message) });
+            }
         }
         finally
         {

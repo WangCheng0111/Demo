@@ -9,6 +9,7 @@ public class Book
 {
     public string Title { get; set; } = "";
     public string FilePath { get; set; } = "";
+    public string SourcePath { get; set; } = "";
     public string EncodingName { get; set; } = "utf-8";
     public List<BookChapter> Chapters { get; set; } = new();
     public int CurrentChapterIndex { get; set; }

@@ -28,7 +28,7 @@ public partial class SettingsViewModel : ObservableObject
     public ObservableCollection<FontOption> FontOptions { get; } = new();
 
     [ObservableProperty]
-    private LanguageOption? _selectedLanguage;
+    public partial LanguageOption? SelectedLanguage { get; set; }
 
     [ObservableProperty]
     public partial double BodyFontSize { get; set; } = 15;
@@ -48,14 +48,14 @@ public partial class SettingsViewModel : ObservableObject
     };
 
     [ObservableProperty]
-    private SettingsCategory _selectedCategory = null!;
+    public partial SettingsCategory SelectedCategory { get; set; } = null!;
 
     public bool IsGeneralSelected => SelectedCategory?.Tag == "General";
     public bool IsShortcutsSelected => SelectedCategory?.Tag == "Shortcuts";
 
     public SettingsViewModel()
     {
-        _selectedCategory = Categories[0];
+        SelectedCategory = Categories[0];
         BodyFontSize = LoadSetting(BodyFontSizeKey, 15);
         TitleFontSize = LoadSetting(TitleFontSizeKey, 19);
 

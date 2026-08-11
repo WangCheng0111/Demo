@@ -103,11 +103,8 @@ public partial class MainViewModel : ObservableObject
 
     public bool IsProgrammaticChapterSelection { get; internal set; }
 
-    public bool IsSearchNotEmpty => !string.IsNullOrEmpty(SearchText);
-
     partial void OnSearchTextChanged(string value)
     {
-        OnPropertyChanged(nameof(IsSearchNotEmpty));
         ApplyChapterFilter();
     }
 
@@ -131,7 +128,7 @@ public partial class MainViewModel : ObservableObject
                 book.CurrentChapterIndex = index;
                 book.CurrentParagraphIndex = 0;
                 CurrentParagraphIndex = 0;
-                BookLibrary.Instance.Save();
+                BookLibrary.Instance.SaveDebounced();
             }
             OnPropertyChanged(nameof(ChapterPositionText));
             OnPropertyChanged(nameof(ReadingPercentText));
@@ -148,16 +145,25 @@ public partial class MainViewModel : ObservableObject
     private void ApplyChapterFilter()
     {
         var keyword = SearchText?.Trim() ?? "";
-        IEnumerable<BookChapter> filtered = _allChapters;
+        List<BookChapter> filtered;
         if (keyword.Length > 0)
         {
-            filtered = _allChapters.Where(c => c.Title.Contains(keyword, StringComparison.CurrentCultureIgnoreCase));
+            filtered = _allChapters
+                .Where(c => c.Title.Contains(keyword, StringComparison.CurrentCultureIgnoreCase))
+                .ToList();
+        }
+        else
+        {
+            filtered = _allChapters;
         }
 
-        Chapters.Clear();
-        foreach (var chapter in filtered)
+        if (!Chapters.SequenceEqual(filtered))
         {
-            Chapters.Add(chapter);
+            Chapters.Clear();
+            foreach (var chapter in filtered)
+            {
+                Chapters.Add(chapter);
+            }
         }
 
         OnPropertyChanged(nameof(HasChapters));
