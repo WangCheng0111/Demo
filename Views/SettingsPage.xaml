@@ -158,6 +158,44 @@
                                                      DisplayMemberPath="DisplayName"
                                                      Width="240"
                                                      HorizontalAlignment="Left" />
+
+                            <TextBlock Text="{Binding BodyFontSizeLabel}"
+                                       FontFamily="{StaticResource HarmonyOSRegular}"
+                                       FontSize="13"
+                                       Foreground="#666666"
+                                       Margin="0,24,0,6" />
+
+                            <Slider Width="300"
+                                    HorizontalAlignment="Left"
+                                    Minimum="10"
+                                    Maximum="28"
+                                    StepFrequency="1"
+                                    Value="{Binding BodyFontSize, Mode=TwoWay}" />
+
+                            <TextBlock Text="{Binding TitleFontSizeLabel}"
+                                       FontFamily="{StaticResource HarmonyOSRegular}"
+                                       FontSize="13"
+                                       Foreground="#666666"
+                                       Margin="0,24,0,6" />
+
+                            <Slider Width="300"
+                                    HorizontalAlignment="Left"
+                                    Minimum="12"
+                                    Maximum="36"
+                                    StepFrequency="1"
+                                    Value="{Binding TitleFontSize, Mode=TwoWay}" />
+
+                            <TextBlock Text="{Binding FontFamilyLabel}"
+                                       FontFamily="{StaticResource HarmonyOSRegular}"
+                                       FontSize="13"
+                                       Foreground="#666666"
+                                       Margin="0,24,0,6" />
+
+                            <controls:CustomComboBox ItemsSource="{Binding FontOptions}"
+                                                     SelectedItem="{Binding SelectedFont, Mode=TwoWay}"
+                                                     DisplayMemberPath="DisplayName"
+                                                     Width="240"
+                                                     HorizontalAlignment="Left" />
                         </StackPanel>
                     </Grid>
 

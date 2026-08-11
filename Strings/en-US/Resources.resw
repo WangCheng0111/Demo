@@ -48,6 +48,15 @@
   <data name="Settings.LanguageLabel" xml:space="preserve">
     <value>Language</value>
   </data>
+  <data name="Settings.BodyFontSize" xml:space="preserve">
+    <value>Body font size</value>
+  </data>
+  <data name="Settings.TitleFontSize" xml:space="preserve">
+    <value>Title font size</value>
+  </data>
+  <data name="Settings.FontFamily" xml:space="preserve">
+    <value>Font</value>
+  </data>
   <data name="Settings.SectionDesktop" xml:space="preserve">
     <value>Desktop</value>
   </data>

@@ -68,6 +68,20 @@ public class BookLibrary
         Save();
     }
 
+    public void RemoveBook(Book book)
+    {
+        if (book == null || !Books.Contains(book)) return;
+
+        Books.Remove(book);
+
+        if (CurrentBook == book)
+        {
+            CurrentBook = Books.OrderByDescending(b => b.LastReadAt).FirstOrDefault();
+            CurrentBookChanged?.Invoke(this, EventArgs.Empty);
+        }
+        Save();
+    }
+
     public void Save()
     {
         try

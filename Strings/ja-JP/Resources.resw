@@ -48,6 +48,15 @@
   <data name="Settings.LanguageLabel" xml:space="preserve">
     <value>言語</value>
   </data>
+  <data name="Settings.BodyFontSize" xml:space="preserve">
+    <value>本文の文字サイズ</value>
+  </data>
+  <data name="Settings.TitleFontSize" xml:space="preserve">
+    <value>見出しの文字サイズ</value>
+  </data>
+  <data name="Settings.FontFamily" xml:space="preserve">
+    <value>フォント</value>
+  </data>
   <data name="Settings.SectionDesktop" xml:space="preserve">
     <value>デスクトップ</value>
   </data>

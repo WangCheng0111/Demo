@@ -81,8 +81,8 @@
                 <DataTemplate x:DataType="models:ReaderParagraph">
                     <Grid>
                         <TextBlock Text="{x:Bind Text}"
-                                   FontFamily="{StaticResource HarmonyOSRegular}"
-                                   FontSize="19"
+                                   FontFamily="{x:Bind FontFamily, Mode=OneWay}"
+                                   FontSize="{x:Bind TitleFontSize, Mode=OneWay}"
                                    FontWeight="SemiBold"
                                    Foreground="#222222"
                                    TextWrapping="Wrap"
@@ -90,8 +90,8 @@
                                    Margin="0,28,0,20"
                                    Visibility="{x:Bind IsTitle, Converter={StaticResource BoolToVisibility}}" />
                         <TextBlock Text="{x:Bind Text}"
-                                   FontFamily="{StaticResource HarmonyOSRegular}"
-                                   FontSize="15"
+                                   FontFamily="{x:Bind FontFamily, Mode=OneWay}"
+                                   FontSize="{x:Bind BodyFontSize, Mode=OneWay}"
                                    Foreground="#333333"
                                    LineHeight="28"
                                    TextWrapping="Wrap"

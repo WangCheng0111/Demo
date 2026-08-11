@@ -101,6 +101,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     public partial int CurrentParagraphIndex { get; set; }
 
+    public bool IsProgrammaticChapterSelection { get; internal set; }
+
     public bool IsSearchNotEmpty => !string.IsNullOrEmpty(SearchText);
 
     partial void OnSearchTextChanged(string value)
@@ -169,7 +171,9 @@ public partial class MainViewModel : ObservableObject
             current = book.Chapters[index];
         }
 
+        IsProgrammaticChapterSelection = true;
         SelectedChapter = current != null && Chapters.Contains(current) ? current : null;
+        IsProgrammaticChapterSelection = false;
     }
 
     [RelayCommand]

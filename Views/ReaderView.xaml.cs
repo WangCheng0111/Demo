@@ -34,6 +34,7 @@ public sealed partial class ReaderView : UserControl
         if (VM != null)
         {
             VM.PropertyChanged += OnViewModelPropertyChanged;
+            VM.Settings.PropertyChanged += OnSettingsPropertyChanged;
         }
 
         _readerScroller = FindDescendant<ScrollViewer>(readerView);
@@ -61,6 +62,25 @@ public sealed partial class ReaderView : UserControl
         if (e.PropertyName == nameof(MainViewModel.SelectedChapter))
         {
             LoadCurrentChapter();
+        }
+    }
+
+    private void OnSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(SettingsViewModel.BodyFontSize) &&
+            e.PropertyName != nameof(SettingsViewModel.TitleFontSize) &&
+            e.PropertyName != nameof(SettingsViewModel.SelectedFont))
+        {
+            return;
+        }
+        if (VM is not { } vm) return;
+
+        var fontFamily = new FontFamily(vm.Settings.FontFamilySource);
+        foreach (var p in vm.Paragraphs)
+        {
+            p.BodyFontSize = vm.Settings.BodyFontSize;
+            p.TitleFontSize = vm.Settings.TitleFontSize;
+            p.FontFamily = fontFamily;
         }
     }
 
@@ -152,6 +172,13 @@ public sealed partial class ReaderView : UserControl
         try
         {
             var paragraphs = await Task.Run(() => TxtParser.ReadChapterParagraphs(book, chapterIndex));
+            var fontFamily = new FontFamily(vm.Settings.FontFamilySource);
+            foreach (var p in paragraphs)
+            {
+                p.BodyFontSize = vm.Settings.BodyFontSize;
+                p.TitleFontSize = vm.Settings.TitleFontSize;
+                p.FontFamily = fontFamily;
+            }
             vm.Paragraphs.Clear();
             foreach (var p in paragraphs)
             {

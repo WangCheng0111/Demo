@@ -1,3 +1,4 @@
+using Demo;
 using Demo.Models;
 using Demo.Services;
 using Microsoft.UI.Xaml;
@@ -5,6 +6,8 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
+using Windows.Storage.Pickers;
+using WinRT.Interop;
 
 namespace Demo.Views;
 
@@ -21,6 +24,13 @@ public sealed partial class BooksPage : Page
         DataContext = BookLibrary.Instance;
         SetupAnimations();
         Loaded += BooksPage_Loaded;
+        BookLibrary.Instance.CurrentBookChanged += (_, _) =>
+        {
+            if (overlay.Visibility == Visibility.Visible)
+            {
+                bookList.SelectedItem = BookLibrary.Instance.CurrentBook;
+            }
+        };
     }
 
     private void SetupAnimations()
@@ -139,5 +149,47 @@ public sealed partial class BooksPage : Page
             BookLibrary.Instance.SetCurrentBook(book);
         }
         CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void DeleteBookButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is Book book)
+        {
+            BookLibrary.Instance.RemoveBook(book);
+        }
+    }
+
+    private bool _isImporting;
+
+    private async void ImportBookButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isImporting) return;
+        if (App.MainWindow is not MainWindow window) return;
+
+        var picker = new FileOpenPicker();
+        InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(window));
+        picker.FileTypeFilter.Add(".txt");
+        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+
+        var file = await picker.PickSingleFileAsync();
+        if (file == null) return;
+
+        _isImporting = true;
+        try
+        {
+            await BookLibrary.Instance.ImportBookAsync(file.Path);
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception ex)
+        {
+            CloseRequested?.Invoke(this, EventArgs.Empty);
+            var vm = window.ViewModel;
+            vm.Paragraphs.Clear();
+            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(LocalizationService.Instance["Import.Error"], ex.Message) });
+        }
+        finally
+        {
+            _isImporting = false;
+        }
     }
 }

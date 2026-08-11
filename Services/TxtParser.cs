@@ -84,11 +84,20 @@ public static class TxtParser
         }
         if (n == 0) return true;
 
+        // The sample may start mid-character; skip leading continuation bytes
+        // so a truncated multi-byte sequence is not mistaken for invalid UTF-8.
+        int start = 0;
+        while (start < n && buffer[start] >= 0x80 && buffer[start] <= 0xBF)
+        {
+            start++;
+        }
+        if (start >= n) return true;
+
         try
         {
             var decoder = new UTF8Encoding(false, true).GetDecoder();
-            char[] chars = new char[n];
-            decoder.Convert(buffer, 0, n, chars, 0, chars.Length, false, out _, out _, out _);
+            char[] chars = new char[n - start];
+            decoder.Convert(buffer, start, n - start, chars, 0, chars.Length, false, out _, out _, out _);
             return true;
         }
         catch (DecoderFallbackException)

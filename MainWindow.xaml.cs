@@ -81,7 +81,10 @@ namespace Demo
                 }
                 else if (e.PropertyName == nameof(MainViewModel.SelectedChapter))
                 {
-                    ScrollToSelectedChapter();
+                    if (ViewModel.IsProgrammaticChapterSelection)
+                    {
+                        ScrollToSelectedChapter();
+                    }
                 }
             };
 
@@ -112,12 +115,13 @@ namespace Demo
 
         private void ScrollToSelectedChapter()
         {
-            if (ViewModel.SelectedChapter == null) return;
+            var chapter = ViewModel.SelectedChapter;
+            if (chapter == null) return;
 
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
             {
-                if (ViewModel.SelectedChapter == null) return;
-                chapterList.ScrollIntoView(ViewModel.SelectedChapter, ScrollIntoViewAlignment.Leading);
+                if (ViewModel.SelectedChapter != chapter) return;
+                chapterList.ScrollIntoView(chapter, ScrollIntoViewAlignment.Leading);
             });
         }
 
