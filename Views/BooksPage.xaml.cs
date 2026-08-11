@@ -154,6 +154,7 @@ public sealed partial class BooksPage : Page
         if ((sender as FrameworkElement)?.DataContext is Book book)
         {
             BookLibrary.Instance.RemoveBook(book);
+            emptyHint.Visibility = BookLibrary.Instance.Books.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
