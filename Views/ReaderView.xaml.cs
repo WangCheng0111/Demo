@@ -129,7 +129,7 @@ public sealed partial class ReaderView : UserControl
             if (error != null)
             {
                 vm.Paragraphs.Clear();
-                vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Import.Error"], error.Message) });
+                vm.Paragraphs.Add(CreateErrorParagraph(vm, string.Format(vm.Loc["Import.Error"], error.Message)));
             }
         }
         finally
@@ -180,7 +180,18 @@ public sealed partial class ReaderView : UserControl
         {
             if (token != _loadToken) return;
             vm.Paragraphs.Clear();
-            vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(vm.Loc["Reader.LoadError"], ex.Message) });
+            vm.Paragraphs.Add(CreateErrorParagraph(vm, string.Format(vm.Loc["Reader.LoadError"], ex.Message)));
         }
+    }
+
+    private static ReaderParagraph CreateErrorParagraph(MainViewModel vm, string text)
+    {
+        return new ReaderParagraph
+        {
+            Text = text,
+            BodyFontSize = vm.Settings.BodyFontSize,
+            TitleFontSize = vm.Settings.TitleFontSize,
+            FontFamily = new FontFamily(vm.Settings.FontFamilySource)
+        };
     }
 }

@@ -4,6 +4,7 @@ using Demo.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
 
@@ -177,7 +178,13 @@ public sealed partial class BooksPage : Page
             {
                 var vm = window.ViewModel;
                 vm.Paragraphs.Clear();
-                vm.Paragraphs.Add(new ReaderParagraph { Text = string.Format(LocalizationService.Instance["Import.Error"], error.Message) });
+                vm.Paragraphs.Add(new ReaderParagraph
+                {
+                    Text = string.Format(LocalizationService.Instance["Import.Error"], error.Message),
+                    BodyFontSize = vm.Settings.BodyFontSize,
+                    TitleFontSize = vm.Settings.TitleFontSize,
+                    FontFamily = new FontFamily(vm.Settings.FontFamilySource)
+                });
             }
         }
         finally

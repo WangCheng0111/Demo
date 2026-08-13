@@ -10,10 +10,10 @@ public partial class ReaderParagraph : ObservableObject
     public bool IsBody => !IsTitle;
 
     [ObservableProperty]
-    public partial double BodyFontSize { get; set; } = 15;
+    public partial double BodyFontSize { get; set; }
 
     [ObservableProperty]
-    public partial double TitleFontSize { get; set; } = 19;
+    public partial double TitleFontSize { get; set; }
 
     [ObservableProperty]
     public partial FontFamily? FontFamily { get; set; }
