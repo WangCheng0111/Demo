@@ -34,7 +34,7 @@
     </Page.Resources>
 
     <Grid x:Name="overlay"
-          Background="#60000000"
+          Background="#20000000"
           Opacity="0"
           Visibility="Collapsed">
         <Border x:Name="panel"
