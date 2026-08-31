@@ -35,7 +35,7 @@ namespace Demo
         public MainWindow()
         {
             InitializeComponent();
-
+            AppWindow.TitleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
             rootGrid.DataContext = ViewModel;
 
             ExtendsContentIntoTitleBar = true;
